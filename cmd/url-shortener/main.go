@@ -2,9 +2,15 @@ package main
 
 import (
 	"log/slog"
+	"net/http"
 	"os"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+
 	"github.com/gulmudovv/url-shortener/internal/config"
+	"github.com/gulmudovv/url-shortener/internal/http-server/handlers/url/save"
+	mwLogger "github.com/gulmudovv/url-shortener/internal/http-server/middleware/logger"
 	"github.com/gulmudovv/url-shortener/internal/lib/logger/sl"
 	"github.com/gulmudovv/url-shortener/internal/storage/sqlite"
 )
@@ -32,6 +38,35 @@ func main() {
 		os.Exit(1)
 	}
 	_ = storage
+
+	// init router
+	router := chi.NewRouter()
+
+	//middelware
+	router.Use(middleware.RequestID)
+	router.Use(mwLogger.New(logger))
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.URLFormat)
+
+	//routes
+	router.Post("/url", save.New(logger, storage))
+
+	logger.Info("starting server", slog.String("address", cfg.Address))
+
+	//server
+
+	srv := &http.Server{
+		Addr:         cfg.Address,
+		Handler:      router,
+		ReadTimeout:  cfg.HTTPServer.Timeout,
+		WriteTimeout: cfg.HTTPServer.Timeout,
+		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
+	}
+
+	if err := srv.ListenAndServe(); err != nil {
+		logger.Error("failed to start server")
+	}
+
 }
 
 func setupLogger(env string) *slog.Logger {
