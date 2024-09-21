@@ -8,8 +8,8 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
-	"github.com/gulmudovv/url-shortener/internal/lib/logger/api/random"
-	resp "github.com/gulmudovv/url-shortener/internal/lib/logger/api/response"
+	"github.com/gulmudovv/url-shortener/internal/lib/api/random"
+	resp "github.com/gulmudovv/url-shortener/internal/lib/api/response"
 	"github.com/gulmudovv/url-shortener/internal/lib/logger/sl"
 	"github.com/gulmudovv/url-shortener/internal/storage"
 )
@@ -26,6 +26,7 @@ type Response struct {
 	Alias string `json:"alias,omitempty"`
 }
 
+//go:generate go run github.com/vektra/mockery/v2@v2.28.2 --name=URLSaver
 type URLSaver interface {
 	SaveURL(string, string) (int64, error)
 }
@@ -80,6 +81,6 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 		}
 
 		log.Info("url succesfully added", slog.Int64("id", id))
-		render.JSON(w, r, resp.OK())
+		render.JSON(w, r, resp.OK(alias))
 	}
 }

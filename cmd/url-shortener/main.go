@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/gulmudovv/url-shortener/internal/config"
+	"github.com/gulmudovv/url-shortener/internal/http-server/handlers/redirect"
 	"github.com/gulmudovv/url-shortener/internal/http-server/handlers/url/save"
 	mwLogger "github.com/gulmudovv/url-shortener/internal/http-server/middleware/logger"
 	"github.com/gulmudovv/url-shortener/internal/lib/logger/sl"
@@ -47,9 +48,19 @@ func main() {
 	router.Use(mwLogger.New(logger))
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
+	router.Route("/url", func(r chi.Router) {
+
+		r.Use(middleware.BasicAuth("url-shortener", map[string]string{
+			cfg.HTTPServer.User: cfg.HTTPServer.Password,
+		}))
+		r.Post("/", save.New(logger, storage))
+
+		//TODO delete handler
+	})
 
 	//routes
-	router.Post("/url", save.New(logger, storage))
+
+	router.Get("/{alias}", redirect.New(logger, storage))
 
 	logger.Info("starting server", slog.String("address", cfg.Address))
 

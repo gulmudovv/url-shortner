@@ -9,6 +9,7 @@ import (
 
 type Response struct {
 	Status string `json:"status"`
+	Alias  string `json:"alias,omitempty"`
 	Error  string `json:"error,omitempty"`
 }
 
@@ -17,9 +18,10 @@ const (
 	StatusError = "Error"
 )
 
-func OK() Response {
+func OK(alias string) Response {
 	return Response{
 		Status: StatusOK,
+		Alias:  alias,
 	}
 }
 

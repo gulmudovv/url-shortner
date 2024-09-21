@@ -10,8 +10,7 @@ func NewRandomString(size int) string {
 	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	var letter = []rune(`abcdefghijklmnopqrstuvwxyz
-	   ABCDEFGHIJKLMNOPQRSTUVWXYZ
-       0123456789`)
+	   ABCDEFGHIJKLMNOPQRSTUVWXYZ`)
 
 	b := make([]rune, size)
 	for i := range b {
